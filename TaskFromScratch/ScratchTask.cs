@@ -6,6 +6,8 @@ public class ScratchTask
 
     private bool _completed;
     private Exception? _exception;
+    private Action? _action;
+    private ExecutionContext? _context;
 
     public bool IsCompleted
     {
@@ -38,7 +40,42 @@ public class ScratchTask
         return task;
     }
 
-    public void SetResult()
+    public ScratchTask ContinueWith(Action action)
+    {
+        ScratchTask task = new();
+
+        lock (_lock)
+        {
+            if (_completed)
+            {
+                ThreadPool.QueueUserWorkItem(_ =>
+                {
+                    try
+                    {
+                        action();
+                        task.SetResult();
+                    }
+                    catch (Exception e)
+                    {
+                        task.SetException(e);
+                    }
+                });
+            }
+            else
+            {
+                _action = action;
+                _context = ExecutionContext.Capture();
+            }
+        }
+
+        return task;
+    }
+
+    public void SetResult() => CompleteTask(null);
+
+    public void SetException(Exception exception) => CompleteTask(exception);
+
+    private void CompleteTask(Exception? exception)
     {
         lock (_lock)
         {
@@ -48,19 +85,19 @@ public class ScratchTask
             }
 
             _completed = true;
-        }
-    }
+            _exception = exception;
 
-    public void SetException(Exception e)
-    {
-        lock (_lock)
-        {
-            if (_completed)
+            if (_action is not null)
             {
-                throw new InvalidOperationException("ScratchTask already completed. Cannot set result of a completed ScratchTask");
+                if (_context is null)
+                {
+                    _action.Invoke();
+                }
+                else
+                {
+                    ExecutionContext.Run(_context, state => ((Action?)state)?.Invoke(), _action);
+                }
             }
         }
-
-        _exception = e;
     }
 }
