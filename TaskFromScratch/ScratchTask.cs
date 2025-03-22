@@ -1,4 +1,6 @@
-﻿namespace TaskFromScratch;
+﻿using System.Runtime.ExceptionServices;
+
+namespace TaskFromScratch;
 
 public class ScratchTask
 {
@@ -69,6 +71,28 @@ public class ScratchTask
         }
 
         return task;
+    }
+
+    public void Wait()
+    {
+        ManualResetEventSlim manualResetEventSlim = null;
+
+        lock (_lock)
+        {
+            if (!_completed)
+            {
+                manualResetEventSlim = new ManualResetEventSlim();
+                ContinueWith(() => manualResetEventSlim.Set());
+
+            }
+        }
+
+        manualResetEventSlim?.Wait();
+
+        if (_exception is not null)
+        {
+            ExceptionDispatchInfo.Throw(_exception);
+        }
     }
 
     public void SetResult() => CompleteTask(null);
