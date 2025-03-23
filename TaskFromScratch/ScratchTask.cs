@@ -1,4 +1,5 @@
-﻿using System.Runtime.ExceptionServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 
 namespace TaskFromScratch;
 
@@ -104,6 +105,8 @@ public class ScratchTask
         }
     }
 
+    public ScratchTaskAwaiter GetAwaiter() => new(this);
+
     public void SetResult() => CompleteTask(null);
 
     public void SetException(Exception exception) => CompleteTask(exception);
@@ -133,4 +136,18 @@ public class ScratchTask
             }
         }
     }
+}
+
+public readonly struct ScratchTaskAwaiter : INotifyCompletion
+{
+    private readonly ScratchTask _task;
+    internal ScratchTaskAwaiter(ScratchTask task) => _task = task;
+
+    public bool IsCompleted => _task.IsCompleted;
+
+    public void OnCompleted(Action continuation) => _task.ContinueWith(continuation);
+
+    public ScratchTaskAwaiter GetAwait() => this;
+
+    public void GetResult() => _task.Wait();
 }

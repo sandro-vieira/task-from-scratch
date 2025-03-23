@@ -3,16 +3,12 @@ using TaskFromScratch;
 
 Console.WriteLine($"Starting Thread Id: {Environment.CurrentManagedThreadId}");
 
-ScratchTask.Run(() => Console.WriteLine($"First Scratch Thread Id: {Environment.CurrentManagedThreadId}"))
-    .Wait();
+await ScratchTask.Run(() => Console.WriteLine($"First Scratch Thread Id: {Environment.CurrentManagedThreadId}"));
 
-ScratchTask.Delay(TimeSpan.FromSeconds(3))
-    .Wait();
+await ScratchTask.Delay(TimeSpan.FromSeconds(3));
 
 Console.WriteLine($"Second Scratch Thread Id: {Environment.CurrentManagedThreadId}");
 
-ScratchTask.Delay(TimeSpan.FromSeconds(3))
-    .Wait();
+await ScratchTask.Delay(TimeSpan.FromSeconds(3));
 
-ScratchTask.Run(() => Console.WriteLine($"Third Scratch Thread Id: {Environment.CurrentManagedThreadId}"))
-    .Wait();
+await ScratchTask.Run(() => Console.WriteLine($"Third Scratch Thread Id: {Environment.CurrentManagedThreadId}"));
