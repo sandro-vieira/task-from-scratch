@@ -22,6 +22,15 @@ public class ScratchTask
         }
     }
 
+    public static ScratchTask Delay(TimeSpan delay)
+    {
+        ScratchTask task = new();
+
+        new Timer(_ => task.SetResult()).Change(delay, Timeout.InfiniteTimeSpan);
+
+        return task;
+    }
+
     public static ScratchTask Run(Action action)
     {
         ScratchTask task = new();
